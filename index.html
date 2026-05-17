@@ -1,0 +1,103 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Mapa en tiempo real</title>
+
+    <!-- Mapbox -->
+    <script src="https://api.mapbox.com/mapbox-gl-js/v3.0.1/mapbox-gl.js"></script>
+    <link href="https://api.mapbox.com/mapbox-gl-js/v3.0.1/mapbox-gl.css" rel="stylesheet"/>
+
+    <style>
+        body{
+            margin:0;
+            padding:0;
+        }
+
+        #map{
+            width:100%;
+            height:100vh;
+        }
+    </style>
+</head>
+<body>
+
+<div id="map"></div>
+
+<script type="module">
+
+// Firebase imports
+import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
+
+import {
+    getFirestore,
+    doc,
+    onSnapshot
+} from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
+
+
+// CONFIGURACIÓN REAL DE FIREBASE
+const firebaseConfig = {
+  apiKey: "AIzaSyBzJxgSpmXEQ4cVc7deMG_r7SfWQvpVjhc",
+  authDomain: "geoproyecto-3ebe5.firebaseapp.com",
+  projectId: "geoproyecto-3ebe5",
+  storageBucket: "geoproyecto-3ebe5.firebasestorage.app",
+  messagingSenderId: "547526272058",
+  appId: "1:547526272058:web:5e6f0c66c3018e724e4103",
+  measurementId: "G-0Y2L42TH58"
+};
+
+
+// Inicializar Firebase
+const app = initializeApp(firebaseConfig);
+const db = getFirestore(app);
+
+
+// TOKEN PÚBLICO MAPBOX
+mapboxgl.accessToken = "TU_MAPBOX_PUBLIC_TOKEN";
+
+
+// Crear mapa
+const map = new mapboxgl.Map({
+    container: 'map',
+    style: 'mapbox://styles/mapbox/streets-v12',
+    center: [-68.15, -16.50], // La Paz
+    zoom: 14
+});
+
+
+// marcador
+let marker = new mapboxgl.Marker()
+    .setLngLat([-68.15, -16.50])
+    .addTo(map);
+
+
+// Leer datos en tiempo real desde Firebase
+const referencia = doc(db, "ubi", "UserUbi");
+
+onSnapshot(referencia, (docSnap) => {
+
+    if(docSnap.exists()){
+
+        const data = docSnap.data();
+
+        const lat = parseFloat(data.latitud);
+        const lng = parseFloat(data.longitud);
+
+        console.log("Lat:", lat);
+        console.log("Lng:", lng);
+
+        marker.setLngLat([lng, lat]);
+
+        map.flyTo({
+            center: [lng, lat],
+            zoom: 15
+        });
+    }
+});
+
+</script>
+
+</body>
+</html>
